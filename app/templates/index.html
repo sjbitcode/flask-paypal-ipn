@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content2 %}
+<div class="jumbotron">
+  <h1 class="display-3">Send donor email</h1>
+  <p class="lead">You will need donor's first name, amount paid, and (optionally) the link to Cook Play Live's Mailchimp signup form.</p>
+  <p><a class="btn btn-lg btn-success" href="{{ url_for('main.manual_send_email') }}" role="button">Send donor email</a></p>
+  <p><a class="btn btn-lg btn-info" href="{{ url_for('main.donation_display_template') }}" role="button" target="_blank">View email template</a></p>
+</div>
+{% endblock %}

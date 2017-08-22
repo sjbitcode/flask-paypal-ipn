@@ -1,0 +1,45 @@
+{% extends "bootstrap/base.html" %}
+
+{% block title %}Cook Play Live - Automatic email Flask application{% endblock %}
+
+{% block styles %}
+  {{ super() }}
+  <link href="{{ url_for('static', filename='ie10-viewport-bug-workaround.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='jumbotron-narrow.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <div class="header clearfix">
+      <nav>
+        <ul class="nav nav-pills pull-right">
+          <li role="presentation"><a href="{{ url_for('main.index') }}">Home</a></li>
+          <li role="presentation"><a href="{{ url_for('main.about') }}">About</a></li>
+          <li role="presentation"><a href="{{ url_for('main.contact') }}">Contact</a></li>
+        </ul>
+      </nav>
+      <a href="{{ url_for('main.index') }}"><h3 class="text-muted">Cook Play Live</h3></a>
+    </div>
+
+    {% block content2 %}{% endblock %}
+
+    {% block contact %}{% endblock %}
+
+    <div class="alert alert-warning">
+      <strong>Warning!</strong> Sending donor emails this way should be done only by the Cook Play Live team.
+    </div>
+
+
+    <footer class="footer">
+      <p>&copy; Sangeeta Jadoonanan 2017</p>
+    </footer>
+
+  </div> <!-- /container -->
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script src="{{ url_for('static', filename='ie10-viewport-bug-workaround.js') }}"></script>
+{% endblock %}
