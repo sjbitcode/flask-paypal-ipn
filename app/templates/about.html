@@ -60,9 +60,9 @@
       perform several checks before sending the automatic thank you email.<br>
 
       <ul>
+        <li>Validate that the "receiver_email" is an email address registered in your PayPal account, to prevent the payment from being sent to a fraudster's account</li>
         <li>Confirm that the "payment_status" is "Completed," since IPNs are also sent for other results such as "Pending" or "Failed"</li>
         <li>Check that the "txn_id" is not a duplicate to prevent a fraudster from using reusing an old, completed transaction</li>
-        <li>Validate that the "receiver_email" is an email address registered in your PayPal account, to prevent the payment from being sent to a fraudster's account</li>
       </ul>
 
       We perform the following checks, then update our database with the IPN data depending on the outcome of the above checks.
