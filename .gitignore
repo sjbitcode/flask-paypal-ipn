@@ -103,3 +103,9 @@ logs/
 
 # env script
 env.sh
+
+# sqlite
+*.sqlite3
+
+# misc
+.DS_Store

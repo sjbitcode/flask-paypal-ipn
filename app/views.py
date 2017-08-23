@@ -1,99 +1,20 @@
 import requests
-
 from flask import (
     Blueprint, current_app,
     request, render_template,
-    url_for, redirect
-)
-from sqlalchemy import exc
+    url_for, redirect)
 from werkzeug.datastructures import ImmutableOrderedMultiDict
 
-from .database import db
 from . import settings, email_texts
 from .forms import EmailForm
 from .models import IPN
 from .utils import (
-    send_thank_you_email, send_warning_email
-)
+    send_thank_you_email,
+    send_warning_email,
+    write_ipn)
 
 
 main = Blueprint(name='main', import_name=__name__)
-
-
-def write_ipn(request_dict, instance=None, instance_query=None):
-    kwargs = {}
-
-    kwargs['txn_id'] = request_dict.get('txn_id')
-    kwargs['receiver_email'] = request_dict.get('receiver_email', None)
-    kwargs['payer_email'] = request_dict.get('payer_email', None)
-    kwargs['first_name'] = request_dict.get('first_name', None)
-    kwargs['last_name'] = request_dict.get('last_name', None)
-    kwargs['payment_status'] = request_dict.get('payment_status', None)
-    kwargs['payment_date'] = request_dict.get('payment_date', None)
-    kwargs['item_name'] = request_dict.get('item_name', None)
-    kwargs['item_number'] = request_dict.get('item_number', None)
-    kwargs['option_selection1'] = request_dict.get('option_selection1', None)
-    kwargs['payment_gross'] = float(request_dict.get('payment_gross', 0))
-    kwargs['payment_fee'] = float(request_dict.get('payment_fee', 0))
-    kwargs['mc_gross'] = float(request_dict.get('mc_gross', 0))
-    kwargs['mc_fee'] = float(request_dict.get('mc_fee', 0))
-    kwargs['mc_currency'] = request_dict.get('mc_currency', None)
-    kwargs['memo'] = request_dict.get('memo', None)
-
-    if not instance:
-        try:
-            instance = IPN(**kwargs)
-            db.session.add(instance)
-            db.session.commit()
-            print('Created new IPN entry!!!!!!!!!!!')
-            current_app.logger.info('Created new IPN entry')
-            return
-        except exc.IntegrityError as e:
-            db.session.rollback()
-            current_app.logger.error(e)
-            print(e)
-            raise
-    else:
-        # don't overwrite the primary key
-        kwargs.pop('txn_id')
-        try:
-            instance_query.update(kwargs)
-            db.session.commit()
-            current_app.logger.info('Updated IPN entry.')
-            print('Updated IPN entry!!!!!!!!!!!')
-            return
-        except Exception as e:
-            current_app.logger.error(e)
-            print(e)
-            raise
-
-    # with current_app.app_context():
-    #     if not instance:
-    #         try:
-    #             instance = IPN(**kwargs)
-    #             db.session.add(instance)
-    #             db.session.commit()
-    #             print('Created new IPN entry!!!!!!!!!!!')
-    #             current_app.logger.info('Created new IPN entry')
-    #             return
-    #         except exc.IntegrityError as e:
-    #             db.session.rollback()
-    #             current_app.logger.error(e)
-    #             print(e)
-    #             raise
-    #     else:
-    #         # don't overwrite the primary key
-    #         kwargs.pop('txn_id')
-    #         try:
-    #             instance_query.update(kwargs)
-    #             db.session.commit()
-    #             current_app.logger.info('Updated IPN entry.')
-    #             print('Updated IPN entry!!!!!!!!!!!')
-    #             return
-    #         except Exception as e:
-    #             current_app.logger.error(e)
-    #             print(e)
-    #             raise
 
 
 @main.route('/')
@@ -132,8 +53,7 @@ def manual_send_email():
                 'first_name': form.data.get('first_name'),
                 'email': form.data.get('email'),
                 'amount': form.data.get('amount'),
-                'signup_form_link': form.data.get('signup_form_link') or 'http://eepurl.com/cZBoOX'
-            })
+                'signup_form_link': form.data.get('signup_form_link')})
 
             return redirect(url_for('main.success'))
 
@@ -142,27 +62,52 @@ def manual_send_email():
 
 @main.route('/ipn', methods=['POST'])
 def ipn():
+    '''
+    Process incoming Paypal IPN.
+    If IPN is verified, perform several checks
+    before updating database and sending emails.
+
+    Conditions:
+    1 - An existing IPN's status changes to Complete
+        --> send thank-you email.
+
+    2 - A new IPN has same transaction id and status
+        as an existing, incomplete IPN
+        --> send warning email.
+
+    3 - A new IPN has same transaction id and status
+        as an existing, completed IPN
+        --> send warning email.
+
+    4 - A new IPN has same transaction id and different
+        status of an existing, completed IPN
+        --> send warning email.
+
+    5 - A new IPN entry is created whose status is Complete
+        --> send thank-you email.
+
+    6 - A new IPN has a different receiver email than what
+        is registered on our Paypal account
+        --> send warning email.
+    '''
+
+    # Verify Paypal IPN
     arg = ''
-
-    # Setting storage class to ordered dict.
     request.parameter_storage_class = ImmutableOrderedMultiDict
-
-    # Create arg list.
     values = request.form
+
     for x, y in values.items():
         arg += "&{x}={y}".format(x=x, y=y)
 
-    # Create validate url and send back to Paypal.
-    validate_url = 'https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_notify-validate{arg}' \
-        .format(arg=arg)
-    r = requests.get(validate_url)
+    validate_url = '{url}?cmd=_notify-validate{arg}'.format(
+        url=settings.PAYPAL_SANDBOX_URL, arg=arg)
 
-    print(r.content)
-    print(r.text)
+    r = requests.get(validate_url)
 
     if r.text == 'VERIFIED':
 
-        print("PayPal transaction was verified successfully.")
+        current_app.logger.info('Paypal transaction was verified successfully.')
+
         print(request.form)
 
         # Collect useful info for the following.
@@ -186,105 +131,88 @@ def ipn():
                                 first_name, last_name, payment_status,
                                 payment_date, item_name, item_number,
                                 option_selection1, payment_gross,
-                                mc_currency, mc_gross
-                            )
+                                mc_currency, mc_gross)
 
         # Verify that we are the intended recipient.
         if (receiver_email == settings.PAYPAL_RECEIVER_EMAIL):
-            # print('ITS FOR US!!!!!')
-
             query = IPN.query.filter_by(txn_id=txn_id)
             ipn_obj = query.first()
             new_status = payment_status
-            # print('IPN_OBJ IS ', ipn_obj)
 
-            # If ipn entry saved in database
             if ipn_obj:
                 past_status = ipn_obj.payment_status
 
-                # If existing ipn status not Completed
                 if past_status != 'Completed':
 
-                    # ... and new status is different
+                    # New status is different
                     if new_status != past_status:
-                        # print('UPDATING AN EXISTING IPN')
-                        # update ipn entry
+
+                        # update IPN entry
+                        current_app.logger.info('Updating IPN entry.')
                         write_ipn(
                             request.form, instance=ipn_obj,
-                            instance_query=query
-                        )
+                            instance_query=query)
 
-                        # If status was updated to Completed
+                        # New status updated to Complete (condition 1)
                         if new_status == 'Completed':
-                            # print('UPDATING TO COMPLETED STATUS')
-
-                            # Send thank you email
-                            current_app.logger.info('Sending email...')
-                            send_thank_you_email(
-                                **{
+                            current_app.logger.info('Sending thank you email.')
+                            send_thank_you_email(**{
                                     'first_name': first_name,
                                     'email': payer_email,
-                                    'amount': payment_gross or mc_gross
-                                })
+                                    'amount': payment_gross or mc_gross})
 
                     else:
-                        # and new status is same but not Complete, warning!
-                        current_app.logger.warning('Received ipn with duplicate txn_id and status')
-                        print('DUPLICATE TXN_ID RECEIVED')
-                        # current_app.logger.info('Sending warning email...')
+
+                        # New status same as past, not Complete (condition 2)
+                        current_app.logger.warning(
+                            'Received duplicate incomplete IPN.')
                         send_warning_email(
                             warning_email_text,
-                            category='duplicate_transaction'
-                        )
+                            category='duplicate_transaction')
                 else:
-                    # If existing ipn status is Completed
 
-                    # ... and new status is also Completed.
+                    # If existing ipn status is Completed (condition 3)
                     if new_status == 'Completed':
-                        current_app.logger.warning('Received duplicated complete ipn.')
-                        print('OLD AND COMPLETED IPN ENTRY')
-                        # ipn_log('Sending warning email')
+                        current_app.logger.warning(
+                            'Received duplicated complete IPN.')
                         send_warning_email(
                             warning_email_text,
-                            category='duplicate_completed_transaction'
-                        )
+                            category='duplicate_completed_transaction')
 
-                    # ... and new status is not Completed, but different.
                     else:
-                        current_app.logger.warning('Received ipn for completed ipn entry.')
-                        print('ALREADY COMPLETED IPN ENTRY')
-                        # ipn_log('Sending warning email')
+
+                        # New status not Completed (condition 4)
+                        current_app.logger.warning(
+                            'Received IPN for already completed IPN entry.')
                         send_warning_email(
                             warning_email_text,
-                            category='completed_different_transaction'
-                        )
+                            category='completed_different_transaction')
             else:
+
                 # Create entry in database.
-                print('CREATING NEW IPN ENTRY')
-                current_app.logger.info('Creating new ipn entry.')
+                current_app.logger.info('Creating new IPN entry.')
                 write_ipn(request.form)
 
-                # If new status complete, send email.
+                # If new status complete (condition 5)
                 if new_status == 'Completed':
-                    send_thank_you_email(
-                        **{
+                    current_app.logger.info('Sending thank you email.')
+                    send_thank_you_email(**{
                             'first_name': first_name,
                             'email': payer_email,
-                            'amount': payment_gross or mc_gross
-                        }
-                    )
+                            'amount': payment_gross or mc_gross})
         else:
-            # Another merchant accidentally or intentionally used our IPN url.
-            print('Other merchant used IPN url!')
-            # SEND WARNING EMAIL
-            current_app.logger.warning('Other merchant used IPN url!')
-            # ipn_log('Sending warning email...')
-            send_warning_email(warning_email_text, category='validate_receiver')
+
+            # Our IPN url was accidentally or intentionally used (condition 6)
+            current_app.logger.warning('Receiver email incorrect.')
+            send_warning_email(
+                warning_email_text,
+                category='validate_receiver')
     else:
         print('Paypal IPN string {arg} did not validate'.format(arg=arg))
 
         # Create success log entry.
-        data = 'FAILURE\n'+str(values)+'\n'
+        data = 'Paypal IPN string {arg} did not validate\n'.format(arg=arg)
+        data += 'FAILURE\n'+str(values)+'\n'
         current_app.logger.error(data)
 
     return r.text

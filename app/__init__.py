@@ -2,7 +2,6 @@ import logging
 from logging.handlers import RotatingFileHandler
 
 from flask import Flask
-# from flask_sqlalchemy import SQLAlchemy
 from flask_bootstrap import Bootstrap
 
 from .database import db
@@ -10,7 +9,6 @@ from . import settings
 from .views import main
 
 bootstrap = Bootstrap()
-# db = SQLAlchemy()
 
 
 def create_app():

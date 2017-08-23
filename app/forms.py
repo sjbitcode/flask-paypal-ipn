@@ -8,7 +8,10 @@ class EmailForm(FlaskForm):
         'Donor first name',
         validators=[
             InputRequired(message='The donor first name is required.'),
-            Regexp('^[a-zA-Z]+$', message="First name must contain only letters")
+            Regexp(
+                '^[a-zA-Z]+$',
+                message="First name must contain only letters"
+            )
         ])
 
     email = StringField(

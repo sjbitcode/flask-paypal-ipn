@@ -28,8 +28,8 @@ thank_you_email_text = (
 # text body for warning validate receiver email.
 validate_receiver = (
     'This is a message to inform you that a recent Paypal '
-    'transaction was made and the receiver_email is not an '
-    'email address registered in your Paypal account.\n\n'
+    'transaction was made and the receiver email (business/seller email) '
+    'is not an email address registered in your Paypal account.\n\n'
     'This could mean that the payment is being sent to a '
     'fraudster\'s account instead of yours '
     'or that a merchant has accidentally or intentionally '
@@ -42,7 +42,7 @@ validate_receiver = (
     'the thank you email by using this link.'
 )
 
-# text body for warning duplicate noncomplete transaction email.
+# text body for warning duplicate incomplete transaction email.
 duplicate_transaction = (
     'This is a message to inform you that a recent Paypal '
     'transaction was made and the transaction id and status '
@@ -82,24 +82,6 @@ completed_different_transaction = (
     'duplicate of an existing completed transaction.\n\n'
     'This could mean that a fraudster has reused an old, '
     'completed transaction.'
-    '\n\n'
-    'The automatic thank you email was not sent because '
-    'of this suspicious activity.'
-    '\n\n'
-    'If this email was sent in error, you can still send '
-    'the thank you email by using this link.'
-)
-
-# text body for warning validate amount email.
-validate_amount = (
-    'This is a message to inform you that a recent Paypal '
-    'transaction was made and the amount paid was not one of the fixed '
-    'amount on the donations page. This activity is flagged as '
-    'suspicious because the payer did not select \'Other\' to donate a '
-    'custom amount and their payment amount did not fall within '
-    'these fixed amounts {0}.\n'
-    'This could mean that someone mingled with the HTML of the '
-    'donation page to set another amount.'
     '\n\n'
     'The automatic thank you email was not sent because '
     'of this suspicious activity.'

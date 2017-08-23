@@ -12,29 +12,23 @@ DEBUG = get_env('DEBUG', False) in ['True', 'true']
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(PROJECT_DIR)
 LOG_FILE = os.path.join(BASE_DIR, 'logs', 'app.log')
+DB_PATH = os.path.join(BASE_DIR, 'db.sqlite3')
 TEMPLATE_DIR = os.path.join(PROJECT_DIR, 'templates')
 STATIC_DIR = os.path.join(PROJECT_DIR, 'static')
 
-# MySQL Credentials.
-MYSQL_USERNAME = get_env('MYSQL_USERNAME')
-MYSQL_PASSWORD = get_env('MYSQL_PASSWORD')
-MYSQL_HOST = get_env('MYSQL_HOST')
-MYSQL_DATABASE = get_env('MYSQL_DATABASE')
-
-SQLALCHEMY_DATABASE_URI = 'mysql://{}:{}@{}/{}'.format(
-                            MYSQL_USERNAME,
-                            MYSQL_PASSWORD,
-                            MYSQL_HOST,
-                            MYSQL_DATABASE
-                          )
+SQLALCHEMY_DATABASE_URI = 'sqlite:///{}'.format(DB_PATH)
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+PAYPAL_URL = get_env('PAYPAL_URL')
+PAYPAL_SANDBOX_URL = get_env('PAYPAL_SANDBOX_URL')
 PAYPAL_RECEIVER_EMAIL = get_env('PAYPAL_RECEIVER_EMAIL')
 
 # Mailgun Credentials
 MAILGUN_API_KEY = get_env('MAILGUN_API_KEY')
 MAILGUN_URL = get_env('MAILGUN_URL')
 MAILGUN_SANDBOX_URL = get_env('MAILGUN_SANDBOX_URL')
+MAILGUN_SANDBOX_AUTHORIZED_RECIPIENT = get_env(
+    'MAILGUN_SANDBOX_AUTHORIZED_RECIPIENT')
 
 SECRET_KEY = get_env('SECRET_KEY')
 WTF_CSRF_ENABLED = True
