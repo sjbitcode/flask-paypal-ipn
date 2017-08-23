@@ -68,7 +68,7 @@ def ipn():
     before updating database and sending emails.
 
     Conditions:
-    1 - An existing IPN's status changes to Complete
+    1 - An existing IPN's status changes to Completed
         --> send thank-you email.
 
     2 - A new IPN has same transaction id and status
@@ -83,7 +83,7 @@ def ipn():
         status of an existing, completed IPN
         --> send warning email.
 
-    5 - A new IPN entry is created whose status is Complete
+    5 - A new IPN entry is created whose status is Completed
         --> send thank-you email.
 
     6 - A new IPN has a different receiver email than what
@@ -106,7 +106,8 @@ def ipn():
 
     if r.text == 'VERIFIED':
 
-        current_app.logger.info('Paypal transaction was verified successfully.')
+        current_app.logger.info(
+            'Paypal transaction was verified successfully.')
 
         print(request.form)
 

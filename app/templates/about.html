@@ -1,8 +1,116 @@
 {% extends "base.html" %}
 
 {% block content2 %}
-<div class="jumbotron">
-  <h1 class="display-3">About</h1>
-  <p>Sending emails manually is for cases when there might be something wrong about with the donor's Paypal transaction, as a result having the automatic email not sent.</p>
+<div class="row marketing">
+
+  <div class="col-lg-12">
+    <h1 class="display-3">About</h1>
+
+    <br>
+    <p>Read the following to understand what is Paypal IPN, how it is being used in this application, and when to send manual thank you emails.</p>
+
+    <h4>What is Paypal IPN?</h4>
+    <blockquote>
+      <p>
+        Instant Payment Notification (IPN) is a message service that automatically
+        notifies merchants of events related to PayPal transactions. Merchants can use
+        it to automate back-office and administrative functions, including automatically
+        fulfilling orders and providing customers with order status.
+        <footer>
+          <a href="https://developer.paypal.com/docs/classic/products/instant-payment-notification/" target="_blank">
+            Paypal Developer docs
+          </a>
+        </footer>
+      </p>
+    </blockquote>
+
+    <p>
+    In this application, we are using Paypal IPN to send automatic thank you emails when someone
+    makes a donation to Cook Play Live, Inc.<br><br>
+
+    <h4>How does it work?</h4>
+    Our Flask application serves as an IPN listener.
+    The URL of our application's listener is embedded into the donation form on Cook Play Live's website and
+    is stored onto Cook Play Live's Paypal account where IPN is enabled.
+
+     When someone makes a donation, Paypal sends a payment notification to the URL. Our application
+     receives these messages, validates them to make sure they came from Paypal, and then processes
+     them to send the automatic email. Below is an excerpt from Paypal about how IPN works.
+    </p>
+
+    <blockquote>
+      <p>
+        Merchants create an IPN listener page on their website and then specify the URL of the listener
+        page in their PayPal account profile. PayPal then sends notifications of all transaction-related
+        events to that URL. When customers pay for goods or services, PayPal sends a secure FORM POST
+        containing payment information (IPN messages) to the URL. The IPN listener detects and processes
+        IPN messages using the merchant backend processes. The IPN listener page contains a custom script
+        or program that waits for the messages, validates them with PayPal, and then passes them to various
+        backend applications for processing.
+        <footer>
+          <a href="https://developer.paypal.com/docs/classic/products/instant-payment-notification/#how-it-works" target="_blank">
+            Paypal Developer docs
+          </a>
+        </footer>
+      </p>
+    </blockquote>
+
+    <p>
+      Once we verify that the IPN sent to our server at the URL specified is from Paypal indeed, we must then
+      perform several checks before sending the automatic thank you email.<br>
+
+      <ul>
+        <li>Confirm that the "payment_status" is "Completed," since IPNs are also sent for other results such as "Pending" or "Failed"</li>
+        <li>Check that the "txn_id" is not a duplicate to prevent a fraudster from using reusing an old, completed transaction</li>
+        <li>Validate that the "receiver_email" is an email address registered in your PayPal account, to prevent the payment from being sent to a fraudster's account</li>
+      </ul>
+
+      We perform the following checks, then update our database with the IPN data depending on the outcome of the above checks.
+    </p>
+
+    <h4>Thank You emails and Warning emails</h4>
+
+    <p>
+      The application sends thank you emails when the IPN received has passed the above checks, and warning emails to
+      the organization when the IPN has not passed a check. To prevent duplicate IPNs, we store
+      the "txn_id," "payment_status" and other information of incoming IPN messages
+      in a database and verify that the current IPN's values for these fields are not already in this database.<br><br>
+
+      When an IPN will be stored in database and thank you emails are sent:
+      <ul>
+        <li>The IPN's "txn_id" does not exist in the database and its "payment_status" is "Completed"</li>
+        <li>
+          The IPN's status is "Completed" and an existing IPN with the same "txn_id" does not have a "Completed" status.
+          The existing IPN's status will be updated to "Completed"
+        </li>
+      </ul>
+
+      <br>
+
+      When an IPN will not be stored in database and warning emails are sent:
+      <ul>
+        <li>The IPN has the same "txn_id" and "payment_status" as an existing, completed IPN</li>
+        <li>The IPN has the same "txn_id" and a different "payment_status" of an existing, completed IPN</li>
+        <li>The IPN has same "txn_id" and "payment_status" as an existing, incomplete IPN</li>
+        <li>The IPN has a different "receiver_email" than the email registered on our Paypal account</li>
+      </ul>
+      <br>
+      Check out these
+      <a href="https://developer.paypal.com/docs/classic/ipn/integration-guide/IPNIntro/#ipn-protocol-and-architecture" target="_blank">Paypal Developer docs</a>
+      to read more about the IPN validation process.
+    </p>
+
+    <h4>Why manual emails?</h4>
+    <p>
+      There are cases where the incoming IPN can fail some checks from the validation procedure, and the automatic
+      thank you email is not sent. The IPN will not be stored in the database and a warning email to Cook Play Live is sent with details about
+      the suspicious payment.<br><br>
+
+      In the case that the warning email was sent in error, the manual email option is a way to override this situation and
+      send an email anyway! The sending of emails manually will not modify the database. What you need to send the thank you
+      email manually is the donor's first name, the amount paid, the donor email, and an optional link to Cook Play Live's
+      signup form. The default signup form link will be sent if no link is entered.<br><br>
+    </p>
+  </div>
 </div>
 {% endblock %}
