@@ -24,7 +24,8 @@ def index():
 
 @main.route('/email-template', methods=['GET'])
 def donation_display_template():
-    return render_template('donation_display_template.html',
+    return render_template(
+        'donation_display_template.html',
         signup_form_link=settings.MAILCHIMP_SIGNUP_FORM_LINK)
 
 
@@ -58,7 +59,8 @@ def manual_send_email():
 
             return redirect(url_for('main.success'))
 
-    return render_template('send_email.html',
+    return render_template(
+        'send_email.html',
         form=form,
         signup_form_link=settings.MAILCHIMP_SIGNUP_FORM_LINK,
         sender_email=settings.SENDER_EMAIL)
@@ -108,6 +110,7 @@ def ipn():
 
     r = requests.get(validate_url)
 
+    # If IPN was sent from Paypal
     if r.text == 'VERIFIED':
 
         current_app.logger.info(
@@ -215,7 +218,7 @@ def ipn():
     else:
         print('Paypal IPN string {arg} did not validate'.format(arg=arg))
 
-        # Create success log entry.
+        # Create log entry.
         data = 'Paypal IPN string {arg} did not validate\n'.format(arg=arg)
         data += 'FAILURE\n'+str(values)+'\n'
         current_app.logger.error(data)

@@ -63,27 +63,42 @@ def write_ipn(request_dict, instance=None, instance_query=None):
 
 
 def send_email_api(email_type, **email_kwargs):
+    '''
+    Takes an email_type(string), and email_kwargs(dict).
+
+    Calls the email_api function with email_kwargs and logs
+    status of email sending.
+    '''
+
+    email_log_line = '{from_email} -> {to_email}'.format(**email_kwargs)
+
     try:
         status, text = email_api(**email_kwargs)
         if status != 200:
             current_app.logger.debug(
-                'Unsuccessful {} email transaction. status {}, text {}'
-                .format(email_type, status, text))
+                'Unsuccessful {} email transaction: {} \nstatus {}, text {}'
+                .format(email_type, email_log_line, status, text))
 
         elif status == 200:
             current_app.logger.info(
-                'Successful {} email transaction. status {}, text{}'
-                .format(email_type, status, text))
+                'Successful {} email transaction: {} \nstatus {}, text {}'
+                .format(email_type, email_log_line, status, text))
 
     except Exception as e:
         current_app.logger.error(
-            'Error sending {} email: {}'.format(email_type, e))
+            'Error sending {} email: {} \nerror {}'.format(
+                email_type, email_log_line, e))
 
 
 def send_warning_email(warning_email_text, category=None):
     '''
     Sends warning emails based on warning type.
     All warning emails include IPN payment details.
+
+    The rest of the values for the warning email
+    are taken from settings.
+
+    Constructs dict specified in email_api function.
     '''
 
     if category == 'validate_receiver':
@@ -117,9 +132,15 @@ def send_warning_email(warning_email_text, category=None):
 
 def send_thank_you_email(**kwargs):
     '''
-    Prepares and sends thank you email
-    based on donor name, amount donated,
+    Sends thank you email
+    based on donor first name, amount donated,
     donor email, optional signup form link.
+
+    The rest of the values for the thank you email
+    are taken from settings. Email template is rendered
+    using 'donation.html' template.
+
+    Constructs dict specified in email_api function.
     '''
 
     first_name = kwargs.get('first_name')
@@ -158,6 +179,16 @@ def email_api(**kwargs):
     '''
     Sends email through Mailgun api using
     mailgun url and mailgun api key and parameters.
+
+    Accepts a dict with the following keys:
+    {
+        from_name,
+        from_email,
+        to_email,
+        subject,
+        body_html,
+        body_text
+    }
     '''
 
     from_name = kwargs.get('from_name')
@@ -167,7 +198,6 @@ def email_api(**kwargs):
     body_html = kwargs.get('body_html')
     body_text = kwargs.get('body_text')
 
-    # mailgun_url = '{0}/messages'.format(settings.MAILGUN_URL)
     mailgun_url = '{0}/messages'.format(settings.MAILGUN_URL)
     mailgun_api_key = settings.MAILGUN_API_KEY
 
