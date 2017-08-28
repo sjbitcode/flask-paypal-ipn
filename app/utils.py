@@ -1,5 +1,5 @@
 import requests
-from flask import current_app, render_template
+from flask import current_app, render_template, url_for
 from sqlalchemy import exc
 
 from .database import db
@@ -101,21 +101,28 @@ def send_warning_email(warning_email_text, category=None):
     Constructs dict specified in email_api function.
     '''
 
+    with current_app.app_context():
+        link = settings.DOMAIN
+        link += url_for('main.manual_send_email')
+
     # Render appropriate text email body.
     if category == 'validate_receiver':
-        body_text = email_texts.validate_receiver + warning_email_text
+        body_text = (
+            email_texts.validate_receiver.format(link) + warning_email_text)
 
     elif category == 'duplicate_transaction':
-        body_text = email_texts.duplicate_transaction + warning_email_text
+        body_text = (
+            email_texts.duplicate_transaction.format(link) +
+            warning_email_text)
 
     elif category == 'duplicate_completed_transaction':
         body_text = (
-            email_texts.duplicate_completed_transaction +
+            email_texts.duplicate_completed_transaction.format(link) +
             warning_email_text)
 
     elif category == 'completed_different_transaction':
         body_text = (
-            email_texts.completed_different_transaction +
+            email_texts.completed_different_transaction.format(link) +
             warning_email_text)
 
     # Construct email_api dict.

@@ -44,7 +44,7 @@ def success():
     return render_template('success.html')
 
 
-@main.route('/email', methods=['GET', 'POST'])
+@main.route('/send-email', methods=['GET', 'POST'])
 def manual_send_email():
     form = EmailForm(request.form)
 

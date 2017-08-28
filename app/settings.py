@@ -10,6 +10,7 @@ PORT = int(get_env('PORT', ''))
 DEBUG = get_env('DEBUG', False) in ['True', 'true']
 SECRET_KEY = get_env('SECRET_KEY')
 WTF_CSRF_ENABLED = True
+DOMAIN = get_env('DOMAIN')
 
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(PROJECT_DIR)

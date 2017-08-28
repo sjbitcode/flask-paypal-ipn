@@ -39,7 +39,7 @@ validate_receiver = (
     'of this suspicious activity.'
     '\n\n'
     'If this email was sent in error, you can still send '
-    'the thank you email by using this link.'
+    'the thank you email by using this link {}'
 )
 
 # text body for warning duplicate incomplete transaction email.
@@ -55,7 +55,7 @@ duplicate_transaction = (
     'of this suspicious activity.'
     '\n\n'
     'If this email was sent in error, you can still send '
-    'the thank you email by using this link.'
+    'the thank you email by using this link {}'
 )
 
 # text body for warning duplicate completed transaction email.
@@ -72,7 +72,7 @@ duplicate_completed_transaction = (
     'of this suspicious activity.'
     '\n\n'
     'If this email was sent in error, you can still send '
-    'the thank you email by using this link.'
+    'the thank you email by using this link {}'
 )
 
 # text body for warning completed different transaction email.
@@ -87,7 +87,7 @@ completed_different_transaction = (
     'of this suspicious activity.'
     '\n\n'
     'If this email was sent in error, you can still send '
-    'the thank you email by using this link.'
+    'the thank you email by using this link {}'
 )
 
 ipn_info_warning_email = (
