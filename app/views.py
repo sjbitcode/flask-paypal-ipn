@@ -24,7 +24,8 @@ def index():
 
 @main.route('/email-template', methods=['GET'])
 def donation_display_template():
-    return render_template('donation_display_template.html')
+    return render_template('donation_display_template.html',
+        signup_form_link=settings.MAILCHIMP_SIGNUP_FORM_LINK)
 
 
 @main.route('/about', methods=['GET'])
@@ -57,7 +58,10 @@ def manual_send_email():
 
             return redirect(url_for('main.success'))
 
-    return render_template('send_email.html', form=form)
+    return render_template('send_email.html',
+        form=form,
+        signup_form_link=settings.MAILCHIMP_SIGNUP_FORM_LINK,
+        sender_email=settings.SENDER_EMAIL)
 
 
 @main.route('/ipn', methods=['POST'])
@@ -100,7 +104,7 @@ def ipn():
         arg += "&{x}={y}".format(x=x, y=y)
 
     validate_url = '{url}?cmd=_notify-validate{arg}'.format(
-        url=settings.PAYPAL_SANDBOX_URL, arg=arg)
+        url=settings.PAYPAL_URL, arg=arg)
 
     r = requests.get(validate_url)
 

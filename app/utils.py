@@ -103,12 +103,12 @@ def send_warning_email(warning_email_text, category=None):
             warning_email_text)
 
     email_kwargs = {
-        'from_name': settings.SENDER_NAME,
-        'from_email': settings.SENDER_EMAIL,
+        'from_name': settings.WARNING_SENDER_NAME,
+        'from_email': settings.WARNING_SENDER_EMAIL,
         'to_email': (
             settings.MAILGUN_SANDBOX_AUTHORIZED_RECIPIENT or
-            settings.INFO_EMAIL),
-        'subject': 'Suspicious Payment',
+            settings.WARNING_RECEIVER_EMAIL),
+        'subject': settings.WARNING_SUBJECT_LINE,
         'body_html': None,
         'body_text': body_text}
 
@@ -127,6 +127,7 @@ def send_thank_you_email(**kwargs):
     email = (
         settings.MAILGUN_SANDBOX_AUTHORIZED_RECIPIENT or
         kwargs.get('email'))
+
     signup_form_link = (
         kwargs.get('signup_form_link') or
         settings.MAILCHIMP_SIGNUP_FORM_LINK)
@@ -146,7 +147,7 @@ def send_thank_you_email(**kwargs):
         'from_name': settings.SENDER_NAME,
         'from_email': settings.SENDER_EMAIL,
         'to_email': email,
-        'subject': 'Thank You for your Donation!',
+        'subject': settings.SUBJECT_LINE,
         'body_html': body_html,
         'body_text': body_text}
 
@@ -167,7 +168,7 @@ def email_api(**kwargs):
     body_text = kwargs.get('body_text')
 
     # mailgun_url = '{0}/messages'.format(settings.MAILGUN_URL)
-    mailgun_url = '{0}/messages'.format(settings.MAILGUN_SANDBOX_URL)
+    mailgun_url = '{0}/messages'.format(settings.MAILGUN_URL)
     mailgun_api_key = settings.MAILGUN_API_KEY
 
     request = requests.post(

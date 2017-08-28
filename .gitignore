@@ -102,7 +102,7 @@ ENV/
 logs/
 
 # env script
-env.sh
+*.sh
 
 # sqlite
 *.sqlite3
