@@ -101,6 +101,7 @@ def send_warning_email(warning_email_text, category=None):
     Constructs dict specified in email_api function.
     '''
 
+    # Render appropriate text email body.
     if category == 'validate_receiver':
         body_text = email_texts.validate_receiver + warning_email_text
 
@@ -117,6 +118,7 @@ def send_warning_email(warning_email_text, category=None):
             email_texts.completed_different_transaction +
             warning_email_text)
 
+    # Construct email_api dict.
     email_kwargs = {
         'from_name': settings.WARNING_SENDER_NAME,
         'from_email': settings.WARNING_SENDER_EMAIL,
@@ -153,6 +155,7 @@ def send_thank_you_email(**kwargs):
         kwargs.get('signup_form_link') or
         settings.MAILCHIMP_SIGNUP_FORM_LINK)
 
+    # Render text and html email body.
     body_text = email_texts.thank_you_email_text.format(
         first_name,
         amount,
@@ -164,6 +167,7 @@ def send_thank_you_email(**kwargs):
         amount=amount,
         signup_form_link=signup_form_link)
 
+    # Construct email_api dict.
     email_kwargs = {
         'from_name': settings.SENDER_NAME,
         'from_email': settings.SENDER_EMAIL,
