@@ -129,7 +129,9 @@ def send_warning_email(warning_email_text, category=None):
     email_kwargs = {
         'from_name': settings.WARNING_SENDER_NAME,
         'from_email': settings.WARNING_SENDER_EMAIL,
-        'to_email': settings.WARNING_RECEIVER_EMAIL,
+        'to_email': (
+            settings.MAILGUN_SANDBOX_AUTHORIZED_RECIPIENT or
+            settings.WARNING_RECEIVER_EMAIL),
         'subject': settings.WARNING_SUBJECT_LINE,
         'body_html': None,
         'body_text': body_text}
@@ -152,7 +154,9 @@ def send_thank_you_email(**kwargs):
 
     first_name = kwargs.get('first_name')
     amount = format_price(float(kwargs.get('amount')))
-    email = kwargs.get('email')
+    email = (
+        settings.MAILGUN_SANDBOX_AUTHORIZED_RECIPIENT or
+        kwargs.get('email'))
 
     signup_form_link = (
         kwargs.get('signup_form_link') or
