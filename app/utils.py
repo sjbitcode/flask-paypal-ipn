@@ -102,28 +102,28 @@ def send_warning_email(warning_email_text, category=None):
     '''
 
     with current_app.app_context():
-        link = settings.DOMAIN
-        link += url_for('main.manual_send_email')
+        send_email_link = url_for('main.manual_send_email', _external=True)
 
     # Render appropriate text email body.
     if category == 'validate_receiver':
         body_text = (
-            email_texts.validate_receiver.format(link) + warning_email_text)
+            email_texts.validate_receiver.format(send_email_link) +
+            warning_email_text)
 
     elif category == 'duplicate_transaction':
         body_text = (
-            email_texts.duplicate_transaction.format(link) +
+            email_texts.duplicate_transaction.format(send_email_link) +
             warning_email_text)
 
     elif category == 'duplicate_completed_transaction':
         body_text = (
-            email_texts.duplicate_completed_transaction.format(link) +
-            warning_email_text)
+            email_texts.duplicate_completed_transaction.format(send_email_link)
+            + warning_email_text)
 
     elif category == 'completed_different_transaction':
         body_text = (
-            email_texts.completed_different_transaction.format(link) +
-            warning_email_text)
+            email_texts.completed_different_transaction.format(send_email_link)
+            + warning_email_text)
 
     # Construct email_api dict.
     email_kwargs = {
