@@ -112,18 +112,24 @@ def send_warning_email(warning_email_text, category=None):
 
     elif category == 'duplicate_transaction':
         body_text = (
-            email_texts.duplicate_transaction.format(send_email_link) +
-            warning_email_text)
+            email_texts.duplicate_transaction.format(
+                send_email_link
+            ) + warning_email_text
+        )
 
     elif category == 'duplicate_completed_transaction':
         body_text = (
-            email_texts.duplicate_completed_transaction.format(send_email_link)
-            + warning_email_text)
+            email_texts.duplicate_completed_transaction.format(
+                send_email_link
+            ) + warning_email_text
+        )
 
     elif category == 'completed_different_transaction':
         body_text = (
-            email_texts.completed_different_transaction.format(send_email_link)
-            + warning_email_text)
+            email_texts.completed_different_transaction.format(
+                send_email_link
+            ) + warning_email_text
+        )
 
     # Construct email_api dict.
     email_kwargs = {
