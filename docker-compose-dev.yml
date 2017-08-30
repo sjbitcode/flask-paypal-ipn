@@ -1,0 +1,27 @@
+version: '2'
+
+services:
+  app:
+    restart: always
+    image: sjbitcode/autoemail-app
+    container_name: app
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./env/cpl_dev.env
+    volumes:
+      - /app
+      - ./data:/data
+      - ./logs:/app/logs
+    command: gunicorn -c /app/app/settings.py run
+
+  nginx:
+    restart: always
+    image: sjbitcode/autoemail-nginx
+    container_name: nginx
+    ports:
+      - "80:80"
+    volumes_from:
+      - app
+    depends_on:
+      - app

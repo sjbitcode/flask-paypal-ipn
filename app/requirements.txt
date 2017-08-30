@@ -1,6 +1,7 @@
 requests
 Flask
-mysqlclient
+gunicorn
 SQLAlchemy
 Flask-SQLAlchemy
 Flask-WTF
+Flask-Bootstrap
