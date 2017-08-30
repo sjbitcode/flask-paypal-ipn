@@ -4,24 +4,31 @@ import os
 def get_env(key, default=None):
     return os.environ.get(key, default)
 
-
+# Default application settings.
 HOST = get_env('HOST')
 PORT = int(get_env('PORT', ''))
 DEBUG = get_env('DEBUG', False) in ['True', 'true']
 SECRET_KEY = get_env('SECRET_KEY')
 WTF_CSRF_ENABLED = True
-DOMAIN = get_env('DOMAIN')
 
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(PROJECT_DIR)
 LOG_FILE = os.path.join(BASE_DIR, 'logs', 'app.log')
-DB_PATH = os.path.join(BASE_DIR, 'db.sqlite3')
 TEMPLATE_DIR = os.path.join(PROJECT_DIR, 'templates')
 STATIC_DIR = os.path.join(PROJECT_DIR, 'static')
 
+# Database & SQL Alchemy settings.
+DB_PATH = os.path.join(BASE_DIR, 'db.sqlite3')
 SQLALCHEMY_DATABASE_URI = 'sqlite:///{}'.format(DB_PATH)
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+# Gunicorn settings
+bind = '{}:{}'.format(HOST, PORT)
+workers = 2
+accesslog = os.path.join(BASE_DIR, 'logs', 'gunicorn-access.log')
+errorlog = os.path.join(BASE_DIR, 'logs', 'gunicorn-error.log')
+
+# Paypal, Mailgun, Mailchimp & email application settings.
 PAYPAL_RECEIVER_EMAIL = get_env('PAYPAL_RECEIVER_EMAIL')
 PAYPAL_URL = get_env('PAYPAL_URL')
 
