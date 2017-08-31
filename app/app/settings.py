@@ -25,7 +25,7 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 # Gunicorn settings
 bind = '{}:{}'.format(HOST, PORT)
-workers = 2
+# workers = 2
 accesslog = os.path.join(BASE_DIR, 'logs', 'gunicorn-access.log')
 errorlog = os.path.join(BASE_DIR, 'logs', 'gunicorn-error.log')
 
